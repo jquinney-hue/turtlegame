@@ -680,7 +680,7 @@
     // Game Flow
     function startGame() {
         document.getElementById('state-overlay').classList.add('hidden');
-        gameActive = true; isRunning = false; timeLeft = 300;
+        gameActive = true; isRunning = false; timeLeft = 180;
         robotState = { ...START }; clearCode(); initBoard();
         
         clearInterval(timerInterval);
