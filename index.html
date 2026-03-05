@@ -38,6 +38,28 @@
             overflow: hidden;
         }
 
+        #msg-input-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#msg-input-wrapper input {
+    width: 60px;
+    text-align: center;
+}
+
+#msg-input-wrapper #msg-btn-minus {
+    width: 60px;
+    text-align: center;
+}
+
+#msg-input-wrapper #msg-btn-plus {
+    width: 60px;
+    text-align: center;
+}
+
         header {
             width: 100%;
             padding: 8px 15px;
@@ -296,16 +318,22 @@
     </div>
 
     <div id="msg-modal" class="overlay hidden" style="z-index: 30;">
-        <div class="modal-box">
-            <h3 id="msg-title">Title</h3>
-            <p id="msg-text">Message goes here.</p>
-            <input type="number" id="msg-input" class="hidden" value="3" min="1" max="99">
-            <div class="modal-buttons">
-                <button id="msg-btn-cancel" class="btn-danger hidden">Cancel</button>
-                <button id="msg-btn-ok" class="btn-primary">OK</button>
-            </div>
+    <div class="modal-box">
+        <h3 id="msg-title">Title</h3>
+        <p id="msg-text">Message goes here.</p>
+
+        <div id="msg-input-wrapper" class="hidden">
+            <button id="msg-btn-minus">-</button>
+            <input type="number" id="msg-input" value="3" min="1" max="99">
+            <button id="msg-btn-plus">+</button>
+        </div>
+
+        <div class="modal-buttons">
+            <button id="msg-btn-cancel" class="btn-danger hidden">Cancel</button>
+            <button id="msg-btn-ok" class="btn-primary">OK</button>
         </div>
     </div>
+</div>
 
 <script>
     // Game Config & State
@@ -450,39 +478,68 @@
         dragData = null;
     }
 
-    // Modal UI
     function showModal(title, text, type = 'alert') {
-        return new Promise((resolve) => {
-            const modal = document.getElementById('msg-modal');
-            const titleEl = document.getElementById('msg-title');
-            const textEl = document.getElementById('msg-text');
-            const inputEl = document.getElementById('msg-input');
-            const btnCancel = document.getElementById('msg-btn-cancel');
-            const btnOk = document.getElementById('msg-btn-ok');
+    return new Promise((resolve) => {
+        const modal = document.getElementById('msg-modal');
+        const titleEl = document.getElementById('msg-title');
+        const textEl = document.getElementById('msg-text');
+        const inputEl = document.getElementById('msg-input');
+        const inputWrapper = document.getElementById('msg-input-wrapper');
+        const btnCancel = document.getElementById('msg-btn-cancel');
+        const btnOk = document.getElementById('msg-btn-ok');
+        const btnPlus = document.getElementById('msg-btn-plus');
+        const btnMinus = document.getElementById('msg-btn-minus');
 
-            titleEl.innerText = title; textEl.innerText = text;
-            
-            if (type === 'prompt') {
-                inputEl.classList.remove('hidden'); inputEl.value = '3';
-                btnCancel.classList.remove('hidden');
-            } else {
-                inputEl.classList.add('hidden'); btnCancel.classList.add('hidden');
-            }
-            modal.classList.remove('hidden');
+        titleEl.innerText = title;
+        textEl.innerText = text;
 
-            const cleanup = () => {
-                btnOk.removeEventListener('click', onOk);
-                btnCancel.removeEventListener('click', onCancel);
-                modal.classList.add('hidden');
-            };
+        if (type === 'prompt') {
+            inputWrapper.classList.remove('hidden');
+            inputEl.value = 3;
+            btnCancel.classList.remove('hidden');
+        } else {
+            inputWrapper.classList.add('hidden');
+            btnCancel.classList.add('hidden');
+        }
 
-            const onOk = () => { cleanup(); resolve(type === 'prompt' ? parseInt(inputEl.value) || 0 : true); };
-            const onCancel = () => { cleanup(); resolve(null); };
+        modal.classList.remove('hidden');
 
-            btnOk.addEventListener('click', onOk);
-            btnCancel.addEventListener('click', onCancel);
-        });
-    }
+        const onPlus = () => {
+            const max = parseInt(inputEl.max) || 99;
+            const value = parseInt(inputEl.value) || 0;
+            inputEl.value = Math.min(max, value + 1);
+        };
+
+        const onMinus = () => {
+            const min = parseInt(inputEl.min) || 1;
+            const value = parseInt(inputEl.value) || 0;
+            inputEl.value = Math.max(min, value - 1);
+        };
+
+        const cleanup = () => {
+            btnOk.removeEventListener('click', onOk);
+            btnCancel.removeEventListener('click', onCancel);
+            btnPlus.removeEventListener('click', onPlus);
+            btnMinus.removeEventListener('click', onMinus);
+            modal.classList.add('hidden');
+        };
+
+        const onOk = () => {
+            cleanup();
+            resolve(type === 'prompt' ? parseInt(inputEl.value) || 0 : true);
+        };
+
+        const onCancel = () => {
+            cleanup();
+            resolve(null);
+        };
+
+        btnOk.addEventListener('click', onOk);
+        btnCancel.addEventListener('click', onCancel);
+        btnPlus.addEventListener('click', onPlus);
+        btnMinus.addEventListener('click', onMinus);
+    });
+}
 
     // Syntax Rendering
     function formatSyntax(line, type) {
